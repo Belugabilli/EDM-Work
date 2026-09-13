@@ -41,7 +41,10 @@ export const metadata: Metadata = {
   creator: "VIT Bhopal University",
   publisher: "VIT Bhopal University",
   icons: {
-    icon: "/vit-bhopal-logo.png",
+    icon: [
+      { url: "/vit-bhopal-logo.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
     shortcut: "/vit-bhopal-logo.png",
     apple: "/vit-bhopal-logo.png",
   },
