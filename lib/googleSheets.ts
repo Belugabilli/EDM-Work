@@ -20,6 +20,7 @@ export const SHEET_COLUMNS = {
     'email',
     'phone',
     'department',
+    'branch',
     'year',
     'room_no',
     'role',

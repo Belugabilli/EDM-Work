@@ -48,6 +48,7 @@ const SHEET_HEADERS: Record<string, string[]> = {
     'email',
     'phone',
     'department',
+    'branch',
     'year',
     'room_no',
     'role',

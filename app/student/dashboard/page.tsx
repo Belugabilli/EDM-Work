@@ -42,14 +42,22 @@ export default function StudentDashboardPage() {
       })
       .finally(() => setLoading(false));
 
-    // Fetch profile to verify if details (Phone, Reg No, Department, Branch, Year) are complete
+    // Fetch profile to verify if details (Phone, Department, Branch) are complete
     fetch('/api/profile')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.profile) {
           setProfile(data.profile);
           const p = data.profile;
-          if (!p.phone || !p.student_id || !p.department || !p.branch || !p.year) {
+          // Strictly only prompt if Phone, Branch, or Department is missing
+          const isMissingRequired =
+            !p.phone?.trim() || !p.branch?.trim() || !p.department?.trim();
+
+          const dismissed =
+            typeof window !== 'undefined' &&
+            sessionStorage.getItem('profile_modal_dismissed');
+
+          if (isMissingRequired && !dismissed) {
             setShowOnboarding(true);
           }
         }
@@ -88,7 +96,7 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* Profile Incomplete Banner */}
-      {profile && (!profile.phone || !profile.student_id || !profile.department || !profile.branch || !profile.year) && (
+      {profile && (!profile.phone?.trim() || !profile.branch?.trim() || !profile.department?.trim()) && (
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -97,7 +105,7 @@ export default function StudentDashboardPage() {
             <div>
               <h2 className="text-sm font-bold text-amber-950">Student Profile Incomplete</h2>
               <p className="text-xs text-amber-800/90 mt-0.5">
-                Please complete your Phone Number, Registration Number, Department, Branch, and Current Year of Study.
+                Please complete your Phone Number, Department, and Branch.
               </p>
             </div>
           </div>
@@ -285,8 +293,16 @@ export default function StudentDashboardPage() {
         <ProfileOnboardingModal
           user={profile}
           isOpen={showOnboarding}
-          onClose={() => setShowOnboarding(false)}
+          onClose={() => {
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('profile_modal_dismissed', 'true');
+            }
+            setShowOnboarding(false);
+          }}
           onSuccess={(updated) => {
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('profile_modal_dismissed', 'true');
+            }
             setProfile((prev) => (prev ? { ...prev, ...updated } : null));
             setShowOnboarding(false);
           }}
