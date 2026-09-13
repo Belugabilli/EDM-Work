@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
     const email = payload.email.toLowerCase();
     const name = payload.name || email.split('@')[0];
 
-    // Optional domain restriction
-    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN?.trim();
-    if (allowedDomain && !email.endsWith(`@${allowedDomain}`)) {
+    // Strict university domain restriction: only @vitbhopal.ac.in is allowed
+    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN?.trim() || 'vitbhopal.ac.in';
+    if (!email.endsWith(`@${allowedDomain}`)) {
       return NextResponse.json(
-        { error: `Access restricted to @${allowedDomain} university accounts` },
+        { error: `Access Restricted: Only official @${allowedDomain} university accounts are permitted to sign in.` },
         { status: 403 }
       );
     }

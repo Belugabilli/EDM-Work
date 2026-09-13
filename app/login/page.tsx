@@ -72,6 +72,7 @@ function LoginContent() {
         client_id: clientId,
         callback: handleCredentialResponse,
         auto_select: false,
+        hd: 'vitbhopal.ac.in',
       });
 
       if (googleBtnRef.current) {
@@ -158,11 +159,15 @@ function LoginContent() {
               </div>
             )}
 
-            <div className="text-center space-y-1">
+            <div className="text-center space-y-1.5">
               <h3 className="text-base font-bold text-slate-900">Sign In to Your Account</h3>
               <p className="text-xs text-slate-500">
                 Authenticate securely using your university Google account.
               </p>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-[11px] font-semibold text-[#002855]">
+                <Shield className="w-3 h-3 text-blue-600" />
+                <span>Restricted to @vitbhopal.ac.in only</span>
+              </div>
             </div>
 
             {/* Official Google Identity Button Container */}

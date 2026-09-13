@@ -20,13 +20,14 @@ export async function GET(request: Request) {
 
   const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
-  const authUrl = oauth2Client.generateAuthUrl({
+    const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'online',
     scope: [
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email',
     ],
     prompt: 'select_account',
+    hd: process.env.ALLOWED_EMAIL_DOMAIN?.trim() || 'vitbhopal.ac.in',
   });
 
   return NextResponse.json({ url: authUrl });
