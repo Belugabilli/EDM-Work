@@ -100,6 +100,34 @@ export async function resolveUserFromDatabase(
       console.warn('Failed to update last_login timestamp:', e);
     }
 
+    // Auto-sync to Admins sheet
+    try {
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        if (!adminRecord) {
+          await appendRow(SHEET_NAMES.ADMINS, {
+            admin_id: `ADM-${Date.now().toString(36).toUpperCase()}`,
+            user_id: existingUser.user_id,
+            name: existingUser.name || name,
+            email: cleanEmail,
+            department: existingUser.department || 'Administration',
+            role,
+            active: 'TRUE',
+          });
+        } else if (adminRecord.role !== role || String(adminRecord.active).toUpperCase() !== 'TRUE') {
+          await updateRow(SHEET_NAMES.ADMINS, 'email', cleanEmail, {
+            role,
+            active: 'TRUE',
+          });
+        }
+      } else if (role === 'STUDENT' && adminRecord && String(adminRecord.active).toUpperCase() === 'TRUE') {
+        await updateRow(SHEET_NAMES.ADMINS, 'email', cleanEmail, {
+          active: 'FALSE',
+        });
+      }
+    } catch (adminSyncErr) {
+      console.warn('Failed to auto-sync Admins sheet on login:', adminSyncErr);
+    }
+
     return {
       id: existingUser.user_id,
       email: cleanEmail,

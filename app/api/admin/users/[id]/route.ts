@@ -23,8 +23,8 @@ export async function PATCH(
     if (account_status) {
       updates.account_status = account_status;
     }
-    // Only SUPER_ADMIN can promote or demote roles
-    if (role && user.role === 'SUPER_ADMIN') {
+    // ADMIN or SUPER_ADMIN can promote or demote roles
+    if (role && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN')) {
       updates.role = role;
 
       // Synchronize with Admins sheet
