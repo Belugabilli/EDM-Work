@@ -382,129 +382,135 @@ async function main() {
   }
 
   // 5. Apply Data Validation Dropdowns
-  // Complaints Sheet: Priority & Status
-  const complaintsSheetId = sheetTitleToId.get('Complaints');
-  if (complaintsSheetId !== undefined) {
-    const headers = SHEET_HEADERS['Complaints'];
-    const priorityIdx = headers.indexOf('priority');
-    const statusIdx = headers.indexOf('status');
-
-    if (priorityIdx !== -1) {
+  // First clear old data validations on each sheet to eliminate shifted/stale rules
+  for (const sheetName of REQUIRED_SHEETS) {
+    const sheetId = sheetTitleToId.get(sheetName);
+    if (sheetId !== undefined) {
       stylingRequests.push({
         setDataValidation: {
           range: {
-            sheetId: complaintsSheetId,
+            sheetId,
             startRowIndex: 1,
-            endRowIndex: 1000,
-            startColumnIndex: priorityIdx,
-            endColumnIndex: priorityIdx + 1,
-          },
-          rule: {
-            condition: {
-              type: 'ONE_OF_LIST',
-              values: [
-                { userEnteredValue: 'LOW' },
-                { userEnteredValue: 'MEDIUM' },
-                { userEnteredValue: 'HIGH' },
-                { userEnteredValue: 'URGENT' },
-              ],
-            },
-            showCustomUi: true,
-            strict: true,
-          },
-        },
-      });
-    }
-
-    if (statusIdx !== -1) {
-      stylingRequests.push({
-        setDataValidation: {
-          range: {
-            sheetId: complaintsSheetId,
-            startRowIndex: 1,
-            endRowIndex: 1000,
-            startColumnIndex: statusIdx,
-            endColumnIndex: statusIdx + 1,
-          },
-          rule: {
-            condition: {
-              type: 'ONE_OF_LIST',
-              values: [
-                { userEnteredValue: 'SUBMITTED' },
-                { userEnteredValue: 'UNDER_REVIEW' },
-                { userEnteredValue: 'IN_PROGRESS' },
-                { userEnteredValue: 'RESOLVED' },
-                { userEnteredValue: 'REJECTED' },
-                { userEnteredValue: 'ESCALATED' },
-              ],
-            },
-            showCustomUi: true,
-            strict: true,
           },
         },
       });
     }
   }
 
-  // Users Sheet: Role & Account Status
-  const usersSheetId = sheetTitleToId.get('Users');
-  if (usersSheetId !== undefined) {
-    const headers = SHEET_HEADERS['Users'];
-    const roleIdx = headers.indexOf('role');
-    const statusIdx = headers.indexOf('account_status');
+  // Helper to add data validation to a column (unbounded row range down to the bottom)
+  const addDropdown = (
+    sheetName: string,
+    columnName: string,
+    allowedValues: string[],
+    strict = false
+  ) => {
+    const sheetId = sheetTitleToId.get(sheetName);
+    if (sheetId === undefined) return;
+    const headers = SHEET_HEADERS[sheetName];
+    if (!headers) return;
+    const colIdx = headers.indexOf(columnName);
+    if (colIdx === -1) return;
 
-    if (roleIdx !== -1) {
-      stylingRequests.push({
-        setDataValidation: {
-          range: {
-            sheetId: usersSheetId,
-            startRowIndex: 1,
-            endRowIndex: 1000,
-            startColumnIndex: roleIdx,
-            endColumnIndex: roleIdx + 1,
-          },
-          rule: {
-            condition: {
-              type: 'ONE_OF_LIST',
-              values: [
-                { userEnteredValue: 'STUDENT' },
-                { userEnteredValue: 'ADMIN' },
-                { userEnteredValue: 'SUPER_ADMIN' },
-              ],
-            },
-            showCustomUi: true,
-            strict: true,
-          },
+    stylingRequests.push({
+      setDataValidation: {
+        range: {
+          sheetId,
+          startRowIndex: 1, // Row 2 onwards (unbounded endRowIndex)
+          startColumnIndex: colIdx,
+          endColumnIndex: colIdx + 1,
         },
-      });
-    }
+        rule: {
+          condition: {
+            type: 'ONE_OF_LIST',
+            values: allowedValues.map((v) => ({ userEnteredValue: v })),
+          },
+          showCustomUi: true,
+          strict,
+        },
+      },
+    });
+  };
 
-    if (statusIdx !== -1) {
-      stylingRequests.push({
-        setDataValidation: {
-          range: {
-            sheetId: usersSheetId,
-            startRowIndex: 1,
-            endRowIndex: 1000,
-            startColumnIndex: statusIdx,
-            endColumnIndex: statusIdx + 1,
-          },
-          rule: {
-            condition: {
-              type: 'ONE_OF_LIST',
-              values: [
-                { userEnteredValue: 'ACTIVE' },
-                { userEnteredValue: 'INACTIVE' },
-                { userEnteredValue: 'BLOCKED' },
-              ],
-            },
-            showCustomUi: true,
-            strict: true,
-          },
-        },
-      });
-    }
-  }
+  // 1. Users Sheet Dropdowns
+  addDropdown('Users', 'department', [
+    'School of Computing Science and Engineering',
+    'School of Computer Science Engineering and Artificial Intelligence',
+    'School of Electrical and Electronics Engineering',
+    'School of Mechanical Engineering',
+    'School of Biosciences, Engineering and Technology',
+    'School of Architecture',
+    'VIT Business School',
+    'School of Advanced Sciences and Languages',
+    'Other',
+  ]);
+  addDropdown('Users', 'year', [
+    '1st Year',
+    '2nd Year',
+    '3rd Year',
+    '4th Year',
+    '5th Year / Integrated',
+  ]);
+  addDropdown('Users', 'role', ['STUDENT', 'ADMIN', 'SUPER_ADMIN'], false);
+  addDropdown('Users', 'account_status', ['ACTIVE', 'INACTIVE', 'BLOCKED'], false);
+
+  // 2. Admins Sheet Dropdowns
+  addDropdown('Admins', 'department', [
+    'School of Computing Science and Engineering',
+    'School of Computer Science Engineering and Artificial Intelligence',
+    'School of Electrical and Electronics Engineering',
+    'School of Mechanical Engineering',
+    'School of Biosciences, Engineering and Technology',
+    'School of Architecture',
+    'VIT Business School',
+    'School of Advanced Sciences and Languages',
+    'Administration',
+    'Hostel',
+    'Transport',
+    'Other',
+  ]);
+  addDropdown('Admins', 'role', ['ADMIN', 'SUPER_ADMIN'], false);
+  addDropdown('Admins', 'active', ['TRUE', 'FALSE'], false);
+
+  // 3. Complaints Sheet Dropdowns
+  addDropdown('Complaints', 'priority', ['LOW', 'MEDIUM', 'HIGH', 'URGENT'], false);
+  addDropdown('Complaints', 'status', [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'IN_PROGRESS',
+    'RESOLVED',
+    'REJECTED',
+    'ESCALATED',
+  ], false);
+
+  // 4. Complaint_Status_History Sheet Dropdowns
+  addDropdown('Complaint_Status_History', 'old_status', [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'IN_PROGRESS',
+    'RESOLVED',
+    'REJECTED',
+    'ESCALATED',
+  ], false);
+  addDropdown('Complaint_Status_History', 'new_status', [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'IN_PROGRESS',
+    'RESOLVED',
+    'REJECTED',
+    'ESCALATED',
+  ], false);
+
+  // 5. Categories Sheet Dropdowns
+  addDropdown('Categories', 'active', ['TRUE', 'FALSE'], false);
+
+  // 6. Notifications Sheet Dropdowns
+  addDropdown('Notifications', 'type', [
+    'STATUS_UPDATE',
+    'ADMIN_RESPONSE',
+    'ASSIGNMENT',
+    'SYSTEM',
+  ], false);
+  addDropdown('Notifications', 'is_read', ['TRUE', 'FALSE'], false);
 
   // Execute all formatting and validations
   try {

@@ -197,7 +197,7 @@ export async function appendRow(
       spreadsheetId,
       range: `${sheetName}!A:A`,
       valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
+      insertDataOption: 'OVERWRITE',
       requestBody: {
         values: [rowValues],
       },
