@@ -53,6 +53,21 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update user role');
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -182,17 +197,27 @@ export default function AdminUsersPage() {
                         {u.room_no || <span className="text-slate-500 italic">None</span>}
                       </td>
                       <td className="py-4 px-6">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        <select
+                          value={u.role}
+                          onChange={(e) => handleRoleChange(u.user_id, e.target.value)}
+                          className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border focus:outline-none transition-all cursor-pointer ${
                             u.role === 'SUPER_ADMIN'
-                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30'
                               : u.role === 'ADMIN'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                              : 'bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500/30'
                           }`}
                         >
-                          {u.role}
-                        </span>
+                          <option value="STUDENT" className="bg-slate-900 text-slate-200">
+                            Student
+                          </option>
+                          <option value="ADMIN" className="bg-slate-900 text-amber-300">
+                            Admin
+                          </option>
+                          <option value="SUPER_ADMIN" className="bg-slate-900 text-purple-300">
+                            Super Admin
+                          </option>
+                        </select>
                       </td>
                       <td className="py-4 px-6">
                         <span

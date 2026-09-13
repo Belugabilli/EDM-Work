@@ -46,8 +46,9 @@ export default function StudentProfilePage() {
           setProfile(p);
           setPhone(p.phone || '');
           setRegNo(p.student_id || '');
-          setDepartment(p.department || VIT_DEPARTMENTS[0]);
-          setBranch(p.branch || VIT_BRANCHES[0]);
+          const cleanDept = p.department?.replace(/\s*\([A-Z]+\)$/, '').trim() || '';
+          setDepartment(VIT_DEPARTMENTS.includes(cleanDept) ? cleanDept : (p.department || ''));
+          setBranch(p.branch || '');
           setYear(p.year || STUDY_YEARS[0]);
           setRoomNo(p.room_no || '');
         }
@@ -75,6 +76,18 @@ export default function StudentProfilePage() {
       return;
     }
 
+    if (!department) {
+      setErrorMsg('Please select your academic department.');
+      setSaving(false);
+      return;
+    }
+
+    if (!branch) {
+      setErrorMsg('Please select your branch of study.');
+      setSaving(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
@@ -91,6 +104,11 @@ export default function StudentProfilePage() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save profile changes');
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('profile_modal_dismissed', 'true');
+        localStorage.setItem('profile_modal_dismissed', 'true');
+      }
 
       setSuccessMsg('Profile updated successfully in university database.');
       if (profile) {
@@ -233,6 +251,7 @@ export default function StudentProfilePage() {
                     className="w-full text-xs sm:text-sm pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
                     required
                   >
+                    <option value="" disabled>Select your School / Department</option>
                     {VIT_DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept}>
                         {dept}
@@ -253,6 +272,7 @@ export default function StudentProfilePage() {
                   className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
                   required
                 >
+                  <option value="" disabled>Select your Branch / Programme</option>
                   {VIT_BRANCHES.map((b) => (
                     <option key={b} value={b}>
                       {b}

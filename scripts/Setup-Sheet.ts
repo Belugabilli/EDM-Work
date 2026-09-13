@@ -226,10 +226,13 @@ async function main() {
     });
 
     const firstRow = sheetValuesRes.data.values?.[0] || [];
-    const hasHeaders = firstRow.length > 0 && firstRow[0] === targetHeaders[0];
+    const hasHeaders =
+      firstRow.length === targetHeaders.length &&
+      firstRow[0] === targetHeaders[0] &&
+      firstRow[firstRow.length - 1] === targetHeaders[targetHeaders.length - 1];
 
     if (!hasHeaders) {
-      // Add headers
+      // Add or update headers
       const lastColLetter = String.fromCharCode(65 + targetHeaders.length - 1);
       await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
@@ -239,6 +242,7 @@ async function main() {
           values: [targetHeaders],
         },
       });
+      console.log(`✓ Synchronized header row for "${sheetName}" (${targetHeaders.length} columns)`);
     }
 
     // Seed Categories if completely empty

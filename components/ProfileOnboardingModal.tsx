@@ -11,37 +11,48 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { User } from '@/types';
 
 export const VIT_DEPARTMENTS = [
-  'School of Computing Science & Engineering (SCSE)',
-  'School of Electrical & Electronics Engineering (SEEE)',
-  'School of Mechanical Engineering (SMEC)',
-  'School of Bio-Sciences & Technology (SBST)',
-  'School of Architecture (VITSA)',
-  'School of Business (VITSOL)',
-  'School of Advanced Sciences & Languages (SASL)',
+  'School of Computing Science and Engineering',
+  'School of Computer Science Engineering and Artificial Intelligence',
+  'School of Electrical and Electronics Engineering',
+  'School of Mechanical Engineering',
+  'School of Biosciences, Engineering and Technology',
+  'School of Architecture',
+  'VIT Business School',
+  'School of Advanced Sciences and Languages',
+  'Other',
 ];
 
 export const VIT_BRANCHES = [
-  'Computer Science & Engineering (Core)',
-  'CSE (Artificial Intelligence & Machine Learning)',
-  'CSE (Cyber Security & Digital Forensics)',
-  'CSE (Cloud Computing & Automation)',
-  'CSE (Gaming Technology)',
-  'CSE (Health Informatics)',
-  'CSE (E-Commerce Technology)',
-  'Electronics & Communication Engineering (ECE)',
-  'ECE (Artificial Intelligence & Cybernetics)',
-  'Mechanical Engineering',
-  'Aerospace Engineering',
-  'Bioengineering',
-  'Integrated M.Tech (Software Engineering)',
-  'Integrated M.Tech (CSE with AI)',
-  'BBA / Management Studies',
-  'Architecture (B.Arch)',
-  'Other / Interdisciplinary',
+  'B.Tech Computer Science & Engineering',
+  'B.Tech Computer Science & Engineering (Artificial Intelligence & Machine Learning)',
+  'B.Tech Computer Science & Engineering (Cyber Security & Digital Forensics)',
+  'B.Tech Computer Science & Engineering (Cloud Computing & Automation)',
+  'B.Tech Computer Science & Engineering (Gaming Technology)',
+  'B.Tech Computer Science & Engineering (Health Informatics)',
+  'B.Tech Computer Science & Engineering (E-Commerce Technology)',
+  'B.Tech Computer Science & Engineering (Education Technology)',
+  'B.Tech Electronics & Communication Engineering',
+  'B.Tech Electronics & Communication Engineering (Artificial Intelligence & Cybernetics)',
+  'B.Tech Mechanical Engineering',
+  'B.Tech Mechanical Engineering (Artificial Intelligence & Robotics)',
+  'B.Tech Aerospace Engineering',
+  'B.Tech Bioengineering',
+  'B.Arch (Bachelor of Architecture)',
+  'BBA (Bachelor of Business Administration)',
+  'Integrated M.Tech (Computer Science & Engineering)',
+  'Integrated M.Tech (AI & Bioinformatics)',
+  'M.Tech Artificial Intelligence',
+  'M.Tech Computer Science & Engineering (Cyber Security & Digital Forensics)',
+  'M.Tech Computer Science & Engineering (Computational and Data Science)',
+  'M.Tech Artificial Intelligence & Data Science',
+  'M.Tech VLSI Design',
+  'MCA (Master of Computer Applications)',
+  'Other',
 ];
 
 export const STUDY_YEARS = [
@@ -62,8 +73,12 @@ interface Props {
 export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Props) {
   const [phone, setPhone] = useState(user.phone || '');
   const [regNo, setRegNo] = useState(user.student_id || '');
-  const [department, setDepartment] = useState(user.department || VIT_DEPARTMENTS[0]);
-  const [branch, setBranch] = useState(user.branch || VIT_BRANCHES[0]);
+  const [department, setDepartment] = useState(() => {
+    if (!user.department) return '';
+    const clean = user.department.replace(/\s*\([A-Z]+\)$/, '').trim();
+    return VIT_DEPARTMENTS.includes(clean) ? clean : user.department;
+  });
+  const [branch, setBranch] = useState(user.branch || '');
   const [year, setYear] = useState(user.year || STUDY_YEARS[0]);
   const [roomNo, setRoomNo] = useState(user.room_no || '');
 
@@ -123,6 +138,11 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
         throw new Error(data.error || 'Failed to save student profile');
       }
 
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('profile_modal_dismissed', 'true');
+        localStorage.setItem('profile_modal_dismissed', 'true');
+      }
+
       onSuccess({
         phone: cleanPhone,
         student_id: regNo.trim().toUpperCase(),
@@ -143,7 +163,7 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="bg-[#002855] text-white p-6 sm:p-7">
+        <div className="bg-[#002855] text-white p-6 sm:p-7 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
               <Sparkles className="w-5 h-5 text-amber-300" />
@@ -157,6 +177,20 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
               </p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('profile_modal_dismissed', 'true');
+                localStorage.setItem('profile_modal_dismissed', 'true');
+              }
+              onClose();
+            }}
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Form Body */}
@@ -231,6 +265,7 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
                 className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
                 required
               >
+                <option value="" disabled>Select your School / Department</option>
                 {VIT_DEPARTMENTS.map((dept) => (
                   <option key={dept} value={dept}>
                     {dept}
@@ -252,6 +287,7 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
                 className="w-full text-xs sm:text-sm px-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
                 required
               >
+                <option value="" disabled>Select your Branch / Programme</option>
                 {VIT_BRANCHES.map((b) => (
                   <option key={b} value={b}>
                     {b}
@@ -307,7 +343,13 @@ export function ProfileOnboardingModal({ user, isOpen, onClose, onSuccess }: Pro
           <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('profile_modal_dismissed', 'true');
+                  localStorage.setItem('profile_modal_dismissed', 'true');
+                }
+                onClose();
+              }}
               disabled={saving}
               className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition-all cursor-pointer"
             >

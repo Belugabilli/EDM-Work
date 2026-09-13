@@ -55,7 +55,8 @@ export default function StudentDashboardPage() {
 
           const dismissed =
             typeof window !== 'undefined' &&
-            sessionStorage.getItem('profile_modal_dismissed');
+            (sessionStorage.getItem('profile_modal_dismissed') === 'true' ||
+              localStorage.getItem('profile_modal_dismissed') === 'true');
 
           if (isMissingRequired && !dismissed) {
             setShowOnboarding(true);
@@ -296,12 +297,14 @@ export default function StudentDashboardPage() {
           onClose={() => {
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('profile_modal_dismissed', 'true');
+              localStorage.setItem('profile_modal_dismissed', 'true');
             }
             setShowOnboarding(false);
           }}
           onSuccess={(updated) => {
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('profile_modal_dismissed', 'true');
+              localStorage.setItem('profile_modal_dismissed', 'true');
             }
             setProfile((prev) => (prev ? { ...prev, ...updated } : null));
             setShowOnboarding(false);
