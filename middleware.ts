@@ -9,6 +9,22 @@ const SECRET_KEY = new TextEncoder().encode(
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get('host') || '';
+
+  // Enforce custom domain: redirect any *.vercel.app access to the primary custom domain
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+  if (nextAuthUrl && host.endsWith('.vercel.app')) {
+    try {
+      const customHost = new URL(nextAuthUrl).host;
+      if (customHost && host !== customHost) {
+        const targetUrl = new URL(request.url);
+        targetUrl.host = customHost;
+        targetUrl.protocol = 'https:';
+        return NextResponse.redirect(targetUrl, 308);
+      }
+    } catch {}
+  }
+
   const token = request.cookies.get(COOKIE_NAME)?.value;
 
   let sessionUser: any = null;
